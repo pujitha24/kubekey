@@ -1,7 +1,10 @@
 package infrastructure
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"reflect"
 
 	"github.com/cockroachdb/errors"
 	capkkinfrav1beta1 "github.com/kubesphere/kubekey/api/capkk/infrastructure/v1beta1"
@@ -221,4 +224,34 @@ func (p *clusterScope) getVolumeMounts(ctx context.Context) ([]corev1.Volume, []
 	}
 
 	return volumes, volumeMounts
+}
+
+// inventoryHostsEqual reports whether two inventory hosts are semantically equal.
+// RawExtension bytes may differ in key order or whitespace after a round trip through the API server,
+// so the decoded JSON values are compared instead of the raw bytes.
+func inventoryHostsEqual(a, b kkcorev1.InventoryHost) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for name, av := range a {
+		bv, ok := b[name]
+		if !ok {
+			return false
+		}
+		if bytes.Equal(av.Raw, bv.Raw) {
+			continue
+		}
+		var ao, bo any
+		if err := json.Unmarshal(av.Raw, &ao); err != nil {
+			return false
+		}
+		if err := json.Unmarshal(bv.Raw, &bo); err != nil {
+			return false
+		}
+		if !reflect.DeepEqual(ao, bo) {
+			return false
+		}
+	}
+
+	return true
 }

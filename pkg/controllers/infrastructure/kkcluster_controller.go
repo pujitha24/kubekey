@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"context"
-	"reflect"
 	"strings"
 
 	"github.com/cockroachdb/errors"
@@ -198,7 +197,7 @@ func (r *KKClusterReconciler) reconcileNormal(ctx context.Context, scope *cluste
 	}
 
 	// if inventory's host is match kkcluster.inventoryHosts. skip
-	if reflect.DeepEqual(scope.Inventory.Spec.Hosts, inventoryHosts) {
+	if inventoryHostsEqual(scope.Inventory.Spec.Hosts, inventoryHosts) {
 		return nil
 	}
 
