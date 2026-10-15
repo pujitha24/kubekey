@@ -20,6 +20,11 @@ services:
       - type: bind
         source: /opt/docker-registry/{{ .image_registry.docker_registry_version }}/config.yml
         target: /etc/docker/registry/config.yml
+{{- if .image_registry.docker_registry.storage.filesystem.rootdir | empty | not }}
+      - type: bind
+        source: {{ .image_registry.docker_registry.storage.filesystem.rootdir }}
+        target: {{ .image_registry.docker_registry.storage.filesystem.rootdir }}
+{{- end }}
     ports:
 {{- if .image_registry.auth.plain_http | default false }}
       - {{ .image_registry.http_port | default 80 }}:5000
